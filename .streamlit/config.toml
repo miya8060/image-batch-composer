@@ -1,0 +1,12 @@
+[server]
+# クライアント環境からのアップロード上限 (MB)。Streamlit デフォルト 200MB は
+# 認証なし公開構成では大きすぎるため絞る。商品 PNG 1 枚 ~5MB を想定して 50MB。
+maxUploadSize = 50
+
+# Streamlit Community Cloud では HTTPS / バインド先は自動制御されるが、
+# ローカル起動時の LAN 露出を防ぐためデフォルトを localhost に固定する。
+address = "localhost"
+
+[browser]
+# Cloud 公開時に使用統計を Streamlit に送らない。
+gatherUsageStats = false

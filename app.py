@@ -189,12 +189,18 @@ with c2:
         f"テキスト **{len(texts)}**"
     )
 
-if total > 3000:
-    st.warning(f"生成枚数が 3,000 を超えています ({total} 枚)。ブラウザが重くなる可能性があります。")
+# 認証なしの公開構成のため、メモリ枯渇による全体停止を避けるべくハード上限を設ける。
+MAX_TOTAL = 3000
+over_limit = total > MAX_TOTAL
+if over_limit:
+    st.error(
+        f"生成枚数が上限 {MAX_TOTAL:,} 枚を超えています ({total:,} 枚)。"
+        " 素材を減らすか、複数回に分けて実行してください。"
+    )
 
 if st.button(
     "🚀 全件生成して ZIP でダウンロード",
-    disabled=(total == 0),
+    disabled=(total == 0 or over_limit),
     type="primary",
     use_container_width=True,
 ):

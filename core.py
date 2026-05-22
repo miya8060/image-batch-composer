@@ -7,6 +7,10 @@ from typing import Iterable
 
 from PIL import Image, ImageDraw, ImageFont
 
+# 解凍爆弾対策: 約 5,000 万 px (例: 7000x7000 相当) を超える画像は Pillow が
+# DecompressionBombError を投げる。Web 公開時の DoS ベクター封じ。
+Image.MAX_IMAGE_PIXELS = 50_000_000
+
 SYSTEM_FONT_DIRS: list[Path] = [
     Path("/System/Library/Fonts"),
     Path("/System/Library/Fonts/Supplemental"),
