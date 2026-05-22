@@ -12,11 +12,31 @@ from PIL import Image, ImageDraw, ImageFont
 Image.MAX_IMAGE_PIXELS = 50_000_000
 
 SYSTEM_FONT_DIRS: list[Path] = [
+    # macOS
     Path("/System/Library/Fonts"),
     Path("/System/Library/Fonts/Supplemental"),
     Path("/Library/Fonts"),
     Path.home() / "Library" / "Fonts",
+    # Linux (Streamlit Cloud / Ubuntu / Debian)
+    Path("/usr/share/fonts"),
+    Path("/usr/local/share/fonts"),
+    Path.home() / ".fonts",
 ]
+
+_FONT_EXTENSIONS: tuple[str, ...] = (".ttf", ".otf", ".ttc")
+
+
+def _iter_font_files(root: Path) -> Iterable[Path]:
+    """root 配下を再帰的にスキャンしてフォントファイルを返す。
+
+    Linux はフォントが /usr/share/fonts/<family>/ のようにサブディレクトリに
+    配置されるため、macOS の flat レイアウトと両対応する目的で rglob を使う。
+    """
+    if not root.exists():
+        return
+    for p in root.rglob("*"):
+        if p.is_file() and p.suffix.lower() in _FONT_EXTENSIONS:
+            yield p
 
 
 def resolve_font(name: str, extra_dirs: Iterable[Path] = ()) -> Path:
@@ -35,21 +55,17 @@ def resolve_font(name: str, extra_dirs: Iterable[Path] = ()) -> Path:
 
     target = unicodedata.normalize("NFC", name)
     for d in SYSTEM_FONT_DIRS:
-        if not d.exists():
-            continue
-        for p in d.iterdir():
+        for p in _iter_font_files(d):
             if unicodedata.normalize("NFC", p.name) == target:
                 return p
     raise FileNotFoundError(f"font not found: {name}")
 
 
-def list_system_fonts(extensions: tuple[str, ...] = (".ttf", ".otf", ".ttc")) -> list[str]:
+def list_system_fonts(extensions: tuple[str, ...] = _FONT_EXTENSIONS) -> list[str]:
     """システムフォント (NFC 正規化済みファイル名) を一覧で返す。"""
     seen: set[str] = set()
     for d in SYSTEM_FONT_DIRS:
-        if not d.exists():
-            continue
-        for p in d.iterdir():
+        for p in _iter_font_files(d):
             if p.suffix.lower() in extensions:
                 seen.add(unicodedata.normalize("NFC", p.name))
     return sorted(seen)

@@ -126,12 +126,33 @@ with controls_col:
         color = st.color_picker("テキスト色", "#222222")
 
         all_fonts = list_system_fonts()
-        jp_fonts = [f for f in all_fonts if "ヒラギノ" in f or "Hiragino" in f or "NotoSansCJK" in f]
+        jp_fonts = [
+            f
+            for f in all_fonts
+            if any(k in f for k in ("ヒラギノ", "Hiragino", "NotoSansCJK", "NotoSerifCJK", "NotoSansJP"))
+        ]
         other_fonts = [f for f in all_fonts if f not in jp_fonts]
         font_options = jp_fonts + other_fonts
-        default_font = "ヒラギノ角ゴシック W6.ttc"
-        default_idx = font_options.index(default_font) if default_font in font_options else 0
-        font_name = st.selectbox("フォント (システム)", font_options, index=default_idx)
+
+        # OS 横断のデフォルト優先順: macOS のヒラギノ → Streamlit Cloud (Ubuntu) の Noto CJK
+        preferred = (
+            "ヒラギノ角ゴシック W6.ttc",
+            "NotoSansCJK-Bold.ttc",
+            "NotoSansCJK-Regular.ttc",
+            "NotoSansJP-Bold.otf",
+            "NotoSansJP-Regular.otf",
+        )
+        default_idx = 0
+        for cand in preferred:
+            if cand in font_options:
+                default_idx = font_options.index(cand)
+                break
+
+        if font_options:
+            font_name = st.selectbox("フォント (システム)", font_options, index=default_idx)
+        else:
+            st.warning("システムフォントが検出できませんでした。テキスト描画はスキップされます。")
+            font_name = None
 
 with preview_col:
     # マーカー: 上部 CSS の :has() スコープ用 (このカラムだけにレスポンシブを効かせる)
