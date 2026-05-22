@@ -23,3 +23,11 @@ input/fonts/*
 .vscode/
 .idea/
 .DS_Store
+
+# テスト・検証成果物 (ルート直下のスクショ等)
+.playwright-mcp/
+/desktop_*.png
+/ipad_*.png
+/iphone_*.png
+/layout_*.png
+/streamlit_*.png
