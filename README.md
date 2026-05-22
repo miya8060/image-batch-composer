@@ -13,7 +13,8 @@ Pillow ベース、生成 AI は使わない。500〜3,000 件規模の合成バ
 ## セットアップ (共通)
 
 ```fish
-uv sync
+uv venv                                 # or: python -m venv .venv
+uv pip install -r requirements.txt      # or: .venv/bin/pip install -r requirements.txt
 ```
 
 ---
@@ -21,7 +22,7 @@ uv sync
 ## Web UI モード
 
 ```fish
-uv run streamlit run app.py
+uv run streamlit run app.py             # or: .venv/bin/streamlit run app.py
 ```
 
 ブラウザで `http://localhost:8501` を開くと:
@@ -38,7 +39,7 @@ uv run streamlit run app.py
 ## CLI モード
 
 ```fish
-uv run python scripts/make_samples.py    # ダミー素材を生成
+uv run python scripts/make_samples.py    # ダミー素材を生成 (.venv 経由なら .venv/bin/python)
 uv run python compose.py --limit 5       # 先頭 5 件だけプレビュー
 uv run python compose.py                 # 全件処理 (デフォルト 4 並列)
 ```
