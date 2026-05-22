@@ -22,6 +22,43 @@ st.caption(
     " アップロード → 配置調整 & プレビュー → ZIP ダウンロード、の 3 ステップ。"
 )
 
+# Responsive: 全画面サイズで プレビュー画像を「列幅 100%」かつ「ビューポート高さ 70%」以内に
+# 抑え、どんなサイズでも崩れない。iPhone (<768px) のみ縦並び + プレビュー先頭にする。
+# :has(.preview-marker) で「セクション 2 のプレビュー行」のみスコープし、アップロード 3 列・
+# ZIP 1:2 列・controls_col 内のネスト 2 列には副作用なし。
+# Streamlit の data-testid (stColumn / stImage / stImageContainer / stHorizontalBlock) は
+# 1.32+ で安定だが上位バージョンで変わる可能性あり (要モニタ)。
+st.markdown(
+    """
+    <style>
+    /* 全画面共通: 親 stImage / stImageContainer に inline 固定 px が付くので親ごとフィットさせる */
+    [data-testid="stHorizontalBlock"]:has(.preview-marker) [data-testid="stImage"],
+    [data-testid="stHorizontalBlock"]:has(.preview-marker) [data-testid="stImageContainer"] {
+        max-width: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.preview-marker) [data-testid="stImage"] img {
+        max-width: 100% !important;
+        max-height: 70vh !important;
+        height: auto !important;
+        object-fit: contain;
+    }
+    @media (max-width: 767px) {
+        [data-testid="stHorizontalBlock"]:has(.preview-marker) {
+            flex-direction: column;
+        }
+        [data-testid="stHorizontalBlock"]:has(.preview-marker) > [data-testid="stColumn"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+        [data-testid="stColumn"]:has(.preview-marker) {
+            order: -1;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def open_uploaded(uploaded_file) -> Image.Image:
     return Image.open(BytesIO(uploaded_file.getvalue()))
@@ -97,6 +134,8 @@ with controls_col:
         font_name = st.selectbox("フォント (システム)", font_options, index=default_idx)
 
 with preview_col:
+    # マーカー: 上部 CSS の :has() スコープ用 (このカラムだけにレスポンシブを効かせる)
+    st.markdown('<div class="preview-marker"></div>', unsafe_allow_html=True)
     st.subheader("👀 プレビュー (1 件目の組み合わせ)")
     if bg_files and product_files:
         try:
@@ -114,7 +153,7 @@ with preview_col:
                 font_size=font_size,
                 color=color,
             )
-            # ビューポート内に収めるため固定幅で表示。元画像は大きいので縮小される。
+            # サイズ制御は上部 CSS (max-width: 100%, max-height: 70vh) に委譲。
             st.image(
                 preview,
                 caption=(
@@ -122,7 +161,7 @@ with preview_col:
                     f"商品: {product_files[0].name} / "
                     f"テキスト: {texts[0]!r}"
                 ),
-                width=560,
+                use_container_width=True,
             )
         except Exception as e:
             st.error(f"プレビュー生成エラー: {type(e).__name__}: {e}")
