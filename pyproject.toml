@@ -11,3 +11,9 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+# Streamlit Community Cloud は pyproject.toml を Poetry で読み、PEP 621 形式の
+# プロジェクトを `current project as a package` として install しようとして失敗する。
+# package-mode = false で「依存解決のみ・パッケージ化はしない」を Poetry に伝える。
+[tool.poetry]
+package-mode = false
