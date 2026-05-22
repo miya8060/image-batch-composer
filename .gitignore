@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# uv
+uv.lock
+
+# 生成物・受領素材 (バイナリは追跡しない)
+output/
+input/backgrounds/*
+input/products/*
+input/fonts/*
+!input/backgrounds/.gitkeep
+!input/products/.gitkeep
+!input/fonts/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

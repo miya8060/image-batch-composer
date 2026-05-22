@@ -1,0 +1,13 @@
+[project]
+name = "image-batch-composer"
+version = "0.1.0"
+description = "CSV-driven batch image composer for product visuals (Pillow-based, no generative AI)"
+requires-python = ">=3.11"
+dependencies = [
+    "pillow>=10.0",
+    "tqdm>=4.66",
+    "streamlit>=1.32",
+]
+
+[tool.uv]
+package = false

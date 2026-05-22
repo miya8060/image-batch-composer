@@ -1,0 +1,6 @@
+id,background,product,product_x,product_y,product_scale,text,text_x,text_y,font,font_size,color
+0001,bg_white.png,item_circle.png,400,500,1.0,新商品入荷,80,80,ヒラギノ角ゴシック W6.ttc,110,#222222
+0002,bg_pink.png,item_square.png,400,500,1.0,SALE 30%OFF,60,80,ヒラギノ角ゴシック W6.ttc,110,#cc0000
+0003,bg_navy.png,item_star.png,400,500,1.0,限定セール,80,80,ヒラギノ角ゴシック W6.ttc,110,#ffffff
+0004,bg_white.png,item_circle.png,500,700,0.6,人気No.1,80,80,ヒラギノ角ゴシック W6.ttc,90,#cc8800
+0005,bg_pink.png,item_star.png,300,400,1.2,新登場,80,80,ヒラギノ角ゴシック W6.ttc,140,#882244
