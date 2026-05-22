@@ -19,7 +19,7 @@ st.set_page_config(page_title="画像合成バッチツール", page_icon="🖼�
 st.title("🖼️ 画像合成バッチツール")
 st.caption(
     "背景・商品・テキストの **すべての組み合わせ** を一括生成します。"
-    " アップロード → 配置調整 → プレビュー → ZIP ダウンロード、の 4 ステップ。"
+    " アップロード → 配置調整 & プレビュー → ZIP ダウンロード、の 3 ステップ。"
 )
 
 
@@ -66,72 +66,73 @@ if not texts:
     texts = [""]
 
 # -----------------------------------------------------------------------------
-# 2. レイアウト調整
+# 2. レイアウト調整 & プレビュー
 # -----------------------------------------------------------------------------
-st.header("2. レイアウトを調整")
+st.header("2. レイアウト調整 & プレビュー")
 
-col_a, col_b = st.columns(2)
+# スライダー操作と同じビューポート内でプレビューを見せて即時フィードバックを得るため横並び。
+controls_col, preview_col = st.columns([1, 1])
 
-with col_a:
-    st.subheader("📦 商品の配置")
-    product_x = st.slider("商品 X 座標 (左からの距離 px)", 0, 2000, 400, step=10)
-    product_y = st.slider("商品 Y 座標 (上からの距離 px)", 0, 2000, 500, step=10)
-    product_scale = st.slider("商品の拡縮率", 0.1, 3.0, 1.0, step=0.05)
+with controls_col:
+    sub_a, sub_b = st.columns(2)
+    with sub_a:
+        st.subheader("📦 商品の配置")
+        product_x = st.slider("商品 X 座標 (左からの距離 px)", 0, 2000, 400, step=10)
+        product_y = st.slider("商品 Y 座標 (上からの距離 px)", 0, 2000, 500, step=10)
+        product_scale = st.slider("商品の拡縮率", 0.1, 3.0, 1.0, step=0.05)
 
-with col_b:
-    st.subheader("🔤 テキストの配置")
-    text_x = st.slider("テキスト X 座標 (左からの距離 px)", 0, 2000, 80, step=10)
-    text_y = st.slider("テキスト Y 座標 (上からの距離 px)", 0, 2000, 80, step=10)
-    font_size = st.slider("フォントサイズ (px)", 20, 400, 110, step=2)
-    color = st.color_picker("テキスト色", "#222222")
+    with sub_b:
+        st.subheader("🔤 テキストの配置")
+        text_x = st.slider("テキスト X 座標 (左からの距離 px)", 0, 2000, 80, step=10)
+        text_y = st.slider("テキスト Y 座標 (上からの距離 px)", 0, 2000, 80, step=10)
+        font_size = st.slider("フォントサイズ (px)", 20, 400, 110, step=2)
+        color = st.color_picker("テキスト色", "#222222")
 
-    all_fonts = list_system_fonts()
-    jp_fonts = [f for f in all_fonts if "ヒラギノ" in f or "Hiragino" in f or "NotoSansCJK" in f]
-    other_fonts = [f for f in all_fonts if f not in jp_fonts]
-    font_options = jp_fonts + other_fonts
-    default_font = "ヒラギノ角ゴシック W6.ttc"
-    default_idx = font_options.index(default_font) if default_font in font_options else 0
-    font_name = st.selectbox("フォント (システム)", font_options, index=default_idx)
+        all_fonts = list_system_fonts()
+        jp_fonts = [f for f in all_fonts if "ヒラギノ" in f or "Hiragino" in f or "NotoSansCJK" in f]
+        other_fonts = [f for f in all_fonts if f not in jp_fonts]
+        font_options = jp_fonts + other_fonts
+        default_font = "ヒラギノ角ゴシック W6.ttc"
+        default_idx = font_options.index(default_font) if default_font in font_options else 0
+        font_name = st.selectbox("フォント (システム)", font_options, index=default_idx)
+
+with preview_col:
+    st.subheader("👀 プレビュー (1 件目の組み合わせ)")
+    if bg_files and product_files:
+        try:
+            font_path = resolve_font(font_name) if font_name else None
+            preview = compose(
+                background=open_uploaded(bg_files[0]),
+                product=open_uploaded(product_files[0]),
+                product_x=product_x,
+                product_y=product_y,
+                product_scale=product_scale,
+                text=texts[0] if texts else "",
+                text_x=text_x,
+                text_y=text_y,
+                font_path=font_path,
+                font_size=font_size,
+                color=color,
+            )
+            # ビューポート内に収めるため固定幅で表示。元画像は大きいので縮小される。
+            st.image(
+                preview,
+                caption=(
+                    f"背景: {bg_files[0].name} / "
+                    f"商品: {product_files[0].name} / "
+                    f"テキスト: {texts[0]!r}"
+                ),
+                width=560,
+            )
+        except Exception as e:
+            st.error(f"プレビュー生成エラー: {type(e).__name__}: {e}")
+    else:
+        st.info("背景画像と商品画像をアップロードするとプレビューが表示されます。")
 
 # -----------------------------------------------------------------------------
-# 3. プレビュー
+# 3. 全件生成
 # -----------------------------------------------------------------------------
-st.header("3. プレビュー (1 件目の組み合わせを表示)")
-
-if bg_files and product_files:
-    try:
-        font_path = resolve_font(font_name) if font_name else None
-        preview = compose(
-            background=open_uploaded(bg_files[0]),
-            product=open_uploaded(product_files[0]),
-            product_x=product_x,
-            product_y=product_y,
-            product_scale=product_scale,
-            text=texts[0] if texts else "",
-            text_x=text_x,
-            text_y=text_y,
-            font_path=font_path,
-            font_size=font_size,
-            color=color,
-        )
-        st.image(
-            preview,
-            caption=(
-                f"背景: {bg_files[0].name} / "
-                f"商品: {product_files[0].name} / "
-                f"テキスト: {texts[0]!r}"
-            ),
-            use_container_width=True,
-        )
-    except Exception as e:
-        st.error(f"プレビュー生成エラー: {type(e).__name__}: {e}")
-else:
-    st.info("背景画像と商品画像をアップロードするとプレビューが表示されます。")
-
-# -----------------------------------------------------------------------------
-# 4. 全件生成
-# -----------------------------------------------------------------------------
-st.header("4. 全件生成して ZIP ダウンロード")
+st.header("3. 全件生成して ZIP ダウンロード")
 
 total = (
     len(bg_files) * len(product_files) * len(texts)
